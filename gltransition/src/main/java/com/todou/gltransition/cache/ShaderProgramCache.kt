@@ -1,8 +1,9 @@
 package com.todou.gltransition.cache
 
 import android.content.Context
-
-import java.lang.reflect.Constructor
+import com.todou.gltransition.model.TransitionType
+import com.todou.gltransition.programs.ImageClipShaderProgram
+import com.todou.gltransition.programs.ShaderProgram
 import java.util.HashMap
 
 class ShaderProgramCache private constructor() {
@@ -16,15 +17,16 @@ class ShaderProgramCache private constructor() {
         for (type in TransitionType.values()) {
             try {
                 if (type === TransitionType.SLIDE) {
-                    val constructor = type.getShaderClass().getConstructor(Context::class.java)
+                    val constructor = type.shaderClass!!.constructors.first();
                     val drawer = constructor.newInstance(context)
-                    sDefaultInstance!!.mShaderProgramHashMap!![String.valueOf(type.getValue()) + "_0"] = drawer
+                    type.shaderClass.
+                    sDefaultInstance!!.mShaderProgramHashMap!![String.valueOf(type.value) + "_0"] = drawer
                     val drawer1 = constructor.newInstance(context)
-                    sDefaultInstance!!.mShaderProgramHashMap!![String.valueOf(type.getValue()) + "_1"] = drawer1
+                    sDefaultInstance!!.mShaderProgramHashMap!![String.valueOf(type.value) + "_1"] = drawer1
                 } else if (type !== TransitionType.NO) {
-                    val constructor = type.getShaderClass().getConstructor(Context::class.java)
+                    val constructor = type.shaderClass.getConstructor(Context::class.java)
                     val drawer = constructor.newInstance(context)
-                    sDefaultInstance!!.mShaderProgramHashMap!![String.valueOf(type.getValue())] = drawer
+                    sDefaultInstance!!.mShaderProgramHashMap!![String.valueOf(type.value)] = drawer
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
