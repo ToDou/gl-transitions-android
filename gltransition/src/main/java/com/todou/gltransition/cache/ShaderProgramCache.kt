@@ -11,7 +11,7 @@ class ShaderProgramCache private constructor() {
     private val mShaderProgramHashMap: HashMap<String, ShaderProgram>?
 
     init {
-        mShaderProgramHashMap = HashMap<String, ShaderProgram>()
+        mShaderProgramHashMap = HashMap()
     }
 
     fun init(context: Context) {
