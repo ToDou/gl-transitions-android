@@ -17,7 +17,7 @@ abstract class ClipDrawer(view: IRenderView) {
     }
 
     companion object {
-        protected lateinit var vertexArray: VertexArray
+        lateinit var vertexArray: VertexArray
         lateinit var mVertexData: FloatArray
 
         init {

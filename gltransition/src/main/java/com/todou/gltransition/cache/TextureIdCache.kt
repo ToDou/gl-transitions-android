@@ -17,9 +17,9 @@ class TextureIdCache private constructor() {
     companion object {
 
         @Volatile
-        private var sDefaultInstance: TextureIdCache? = null
+        private lateinit var sDefaultInstance: TextureIdCache
 
-        val instance: TextureIdCache?
+        val instance: TextureIdCache
             get() {
                 if (sDefaultInstance == null) {
                     synchronized(TextureIdCache::class.java) {

@@ -8,11 +8,7 @@ import java.lang.reflect.Constructor
 import java.util.HashMap
 
 class ShaderProgramCache private constructor() {
-    private val mShaderProgramHashMap: HashMap<String, ShaderProgram>?
-
-    init {
-        mShaderProgramHashMap = HashMap()
-    }
+    private val shaderProgramHashMap: HashMap<String, ShaderProgram> = HashMap()
 
     fun init(context: Context) {
         for (type in TransitionType.values()) {
@@ -20,13 +16,13 @@ class ShaderProgramCache private constructor() {
                 if (type === TransitionType.SLIDE) {
                     val constructor = type.shaderClass!!.getConstructor(Context::class.java) as Constructor<ShaderProgram>
                     val drawer = constructor.newInstance(context)
-                    sDefaultInstance!!.mShaderProgramHashMap!![type.ordinal.toString() + "_0"] = drawer
+                    defaultInstance.shaderProgramHashMap[type.ordinal.toString() + "_0"] = drawer
                     val drawer1 = constructor.newInstance(context)
-                    sDefaultInstance!!.mShaderProgramHashMap!![type.ordinal.toString() + "_1"] = drawer1
+                    defaultInstance.shaderProgramHashMap[type.ordinal.toString() + "_1"] = drawer1
                 } else if (type !== TransitionType.NO) {
                     val constructor = type.shaderClass!!.getConstructor(Context::class.java) as Constructor<ShaderProgram>
                     val drawer = constructor.newInstance(context)
-                    sDefaultInstance!!.mShaderProgramHashMap!![type.ordinal.toString()] = drawer
+                    defaultInstance.shaderProgramHashMap[type.ordinal.toString()] = drawer
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -34,9 +30,9 @@ class ShaderProgramCache private constructor() {
 
         }
         try {
-            val constructor = ImageClipShaderProgram::class.java!!.getConstructor(Context::class.java)
+            val constructor = ImageClipShaderProgram::class.java.getConstructor(Context::class.java)
             val drawer = constructor.newInstance(context)
-            sDefaultInstance!!.mShaderProgramHashMap!![NORMAL_IMAGE_PROGRAM_KEY] = drawer
+            defaultInstance.shaderProgramHashMap[NORMAL_IMAGE_PROGRAM_KEY] = drawer
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -44,29 +40,29 @@ class ShaderProgramCache private constructor() {
     }
 
     fun getTextureId(key: String): ShaderProgram? {
-        return if (mShaderProgramHashMap == null) null else mShaderProgramHashMap[key]
+        return shaderProgramHashMap[key]
     }
 
     fun addIdToCache(key: String, id: ShaderProgram) {
-        mShaderProgramHashMap!![key] = id
+        shaderProgramHashMap[key] = id
     }
 
     companion object {
 
         @Volatile
-        private var sDefaultInstance: ShaderProgramCache? = null
+        private lateinit var defaultInstance: ShaderProgramCache
         var NORMAL_IMAGE_PROGRAM_KEY = "normal_image_program_key"
 
-        val instance: ShaderProgramCache?
+        val instance: ShaderProgramCache
             get() {
-                if (sDefaultInstance == null) {
+                if (defaultInstance == null) {
                     synchronized(ShaderProgramCache::class.java) {
-                        if (sDefaultInstance == null) {
-                            sDefaultInstance = ShaderProgramCache()
+                        if (defaultInstance == null) {
+                            defaultInstance = ShaderProgramCache()
                         }
                     }
                 }
-                return sDefaultInstance
+                return defaultInstance
             }
     }
 
