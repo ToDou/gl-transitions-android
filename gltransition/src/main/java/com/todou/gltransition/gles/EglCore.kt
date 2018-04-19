@@ -177,21 +177,23 @@ class EglCore
         mEGLConfig = null
     }
 
-    @Throws(Throwable::class)
-    protected fun finalize() {
-        try {
-            if (mEGLDisplay !== EGL14.EGL_NO_DISPLAY) {
-                // We're limited here -- finalizers don't run on the thread that holds
-                // the EGL state, so if a surface or context is still current on another
-                // thread we can't fully release it here.  Exceptions thrown from here
-                // are quietly discarded.  Complain in the log file.
-                Log.w(TAG, "WARNING: EglCore was not explicitly released -- state may be leaked")
-                release()
-            }
-        } finally {
-            super.finalize()
-        }
-    }
+    //TODO finalize
+//    @Throws(Throwable::class)
+//    protected fun finalize() {
+//        try {
+//            if (mEGLDisplay !== EGL14.EGL_NO_DISPLAY) {
+//                // We're limited here -- finalizers don't run on the thread that holds
+//                // the EGL state, so if a surface or context is still current on another
+//                // thread we can't fully release it here.  Exceptions thrown from here
+//                // are quietly discarded.  Complain in the log file.
+//                Log.w(TAG, "WARNING: EglCore was not explicitly released -- state may be leaked")
+//                release()
+//            }
+//        } finally {
+//            super.finalize()
+//        }
+//    }
+
 
     /**
      * Destroys the specified surface.  Note the EGLSurface won't actually be destroyed if it's
@@ -207,7 +209,7 @@ class EglCore
      *
      * If this is destined for MediaCodec, the EGLConfig should have the "recordable" attribute.
      */
-    fun createWindowSurface(surface: Any): EGLSurface {
+    fun createWindowSurface(surface: Any?): EGLSurface {
         if (surface !is Surface && surface !is SurfaceTexture) {
             throw RuntimeException("invalid surface: $surface")
         }
@@ -286,7 +288,8 @@ class EglCore
      * Sends the presentation time stamp to EGL.  Time is expressed in nanoseconds.
      */
     fun setPresentationTime(eglSurface: EGLSurface, nsecs: Long) {
-        EGLExt.eglPresentationTimeANDROID(mEGLDisplay, eglSurface, nsecs)
+        //TODO eglPresentationTimeANDROID api 18
+//        EGLExt.eglPresentationTimeANDROID(mEGLDisplay, eglSurface, nsecs)
     }
 
     /**
@@ -350,8 +353,8 @@ class EglCore
          * Checks for EGL errors.  Throws an exception if an error has been raised.
          */
         fun checkEglError(msg: String) {
-            val error: Int
-            if ((error = EGL14.eglGetError()) != EGL14.EGL_SUCCESS) {
+            val error: Int = EGL14.eglGetError()
+            if (error != EGL14.EGL_SUCCESS) {
                 throw RuntimeException(msg + ": EGL error: 0x" + Integer.toHexString(error))
             }
         }

@@ -73,7 +73,7 @@ open class EglSurfaceBase protected constructor(// EglCore object we're associat
      *
      * @param surface May be a Surface or SurfaceTexture.
      */
-    fun createWindowSurface(surface: Any) {
+    fun createWindowSurface(surface: Any?) {
         if (mEGLSurface !== EGL14.EGL_NO_SURFACE) {
             throw IllegalStateException("surface already created")
         }
