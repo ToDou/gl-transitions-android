@@ -19,7 +19,7 @@ class TextureRenderer : Thread("TextureRenderer") {
     @Volatile
     var handler: RenderHandler? = null
         private set
-    private val mStartLock = Any()
+    private val mStartLock = Object()
     private var mReady = false
 
     fun setRenderer(renderer: Renderer) {
@@ -69,8 +69,9 @@ class TextureRenderer : Thread("TextureRenderer") {
     }
 
     private fun draw() {
-        if (mWindowSurface == null) return
-        mRenderer?.onDrawFrame(mWindowSurface)
+        mWindowSurface?.let {
+            mRenderer?.onDrawFrame(it)
+        }
     }
 
     private fun frameAvailable() {
@@ -87,15 +88,18 @@ class TextureRenderer : Thread("TextureRenderer") {
     }
 
     private fun surfaceChanged(width: Int, height: Int) {
-        mRenderer!!.onSurfaceChanged(mWindowSurface, width, height)
+        mWindowSurface?.let{
+            mRenderer?.onSurfaceChanged(it, width, height)
+        }
     }
 
     private fun surfaceAvailable(surfaceTexture: SurfaceTexture, b: Boolean) {
         mEglCore = EglCore(null, EglCore.FLAG_RECORDABLE or EglCore.FLAG_TRY_GLES3)
         mWindowSurface = WindowSurface(mEglCore!!, surfaceTexture)
         mWindowSurface?.makeCurrent()
-
-        mRenderer?.onSurfaceCreated(mWindowSurface, mEglCore)
+        mWindowSurface?.let{
+            mRenderer?.onSurfaceCreated(it, mEglCore)
+        }
     }
 
     interface Renderer {
