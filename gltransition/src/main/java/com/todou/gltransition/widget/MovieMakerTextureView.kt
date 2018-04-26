@@ -7,6 +7,7 @@ import android.util.Log
 import android.view.TextureView
 import android.view.View
 import android.view.ViewGroup
+import com.todou.gltransition.BuildConfig
 import com.todou.gltransition.R
 import com.todou.gltransition.render.TextureRenderer
 import com.todou.gltransition.utils.DeviceScreenUtils
@@ -70,24 +71,24 @@ class MovieMakerTextureView : TextureView, TextureView.SurfaceTextureListener {
     }
 
     fun onPause() {
-        val rh = mTextureRenderer?.getHandler()
+        val rh = mTextureRenderer?.handler
         rh.sendShutdown()
         mTextureRenderer = null
     }
 
     fun onResume() {
         mTextureRenderer = TextureRenderer()
-        mTextureRenderer!!.start()
-        mTextureRenderer!!.waitUntilReady()
-        mTextureRenderer!!.setRenderer(mRenderer)
+        mTextureRenderer?.start()
+        mTextureRenderer?.waitUntilReady()
+        mTextureRenderer?.setRenderer(mRenderer)
         if (surfaceTexture != null) {
-            mTextureRenderer!!.getHandler().sendSurfaceAvailable(surfaceTexture, mSurfaceWidth, mSurfaceHeight)
+            mTextureRenderer?.handler?.sendSurfaceAvailable(surfaceTexture, mSurfaceWidth, mSurfaceHeight)
         }
     }
 
     override fun onSurfaceTextureAvailable(surface: SurfaceTexture, width: Int, height: Int) {
         if (mTextureRenderer != null) {
-            mTextureRenderer!!.getHandler().sendSurfaceAvailable(surface, mSurfaceWidth, mSurfaceHeight)
+            mTextureRenderer?.handler?.sendSurfaceAvailable(surface, mSurfaceWidth, mSurfaceHeight)
             mSurfaceWidth = width
             mSurfaceHeight = height
         }
@@ -95,7 +96,7 @@ class MovieMakerTextureView : TextureView, TextureView.SurfaceTextureListener {
 
     override fun onSurfaceTextureSizeChanged(surface: SurfaceTexture, width: Int, height: Int) {
         if (mTextureRenderer != null) {
-            mTextureRenderer!!.getHandler().sendSurfaceChanged(width, height)
+            mTextureRenderer?.handler?.sendSurfaceChanged(width, height)
             mSurfaceWidth = width
             mSurfaceHeight = height
         }
@@ -105,7 +106,7 @@ class MovieMakerTextureView : TextureView, TextureView.SurfaceTextureListener {
         if (DEBUG) Log.e(TAG, "onSurfaceTextureDestroyed")
 
         if (mTextureRenderer != null) {
-            mTextureRenderer!!.getHandler().sendSurfaceDestroyed()
+            mTextureRenderer?.handler?.sendSurfaceDestroyed()
         }
         return true
     }

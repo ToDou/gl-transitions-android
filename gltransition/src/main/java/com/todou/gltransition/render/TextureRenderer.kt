@@ -13,7 +13,7 @@ import java.lang.ref.WeakReference
 
 class TextureRenderer : Thread("TextureRenderer") {
 
-    private var mEglCore: EglCore = null
+    private var mEglCore: EglCore? = null
     private var mRenderer: Renderer? = null
     private var mWindowSurface: WindowSurface? = null
     @Volatile
@@ -22,7 +22,7 @@ class TextureRenderer : Thread("TextureRenderer") {
     private val mStartLock = Object()
     private var mReady = false
 
-    fun setRenderer(renderer: Renderer) {
+    fun setRenderer(renderer: Renderer?) {
         mRenderer = renderer
     }
 
@@ -65,7 +65,7 @@ class TextureRenderer : Thread("TextureRenderer") {
     }
 
     fun requestRender() {
-        handler!!.sendRedraw()
+        handler?.sendRedraw()
     }
 
     private fun draw() {
@@ -98,7 +98,7 @@ class TextureRenderer : Thread("TextureRenderer") {
         mWindowSurface = WindowSurface(mEglCore!!, surfaceTexture)
         mWindowSurface?.makeCurrent()
         mWindowSurface?.let{
-            mRenderer?.onSurfaceCreated(it, mEglCore)
+            mRenderer?.onSurfaceCreated(it, mEglCore!!)
         }
     }
 
