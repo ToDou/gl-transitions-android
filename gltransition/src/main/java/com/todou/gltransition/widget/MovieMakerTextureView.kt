@@ -72,7 +72,7 @@ class MovieMakerTextureView : TextureView, TextureView.SurfaceTextureListener {
 
     fun onPause() {
         val rh = mTextureRenderer?.handler
-        rh.sendShutdown()
+        rh?.sendShutdown()
         mTextureRenderer = null
     }
 
