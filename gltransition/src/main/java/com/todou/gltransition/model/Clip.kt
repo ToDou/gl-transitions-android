@@ -1,9 +1,8 @@
 package com.todou.gltransition.model
 
-import java.io.Serializable
 import java.util.UUID
 
-open class Clip : Serializable {
+open class Clip : BaseModel() {
     var startTime = 0
     var showTime = 2000
     var key: String
