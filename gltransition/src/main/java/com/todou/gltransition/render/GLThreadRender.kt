@@ -2,12 +2,13 @@ package com.todou.gltransition.render
 
 import android.content.Context
 import android.view.TextureView
+import com.todou.gltransition.BuildConfig
 import com.todou.gltransition.IPlayerLife
 import com.todou.gltransition.gles.EglCore
 import com.todou.gltransition.gles.WindowSurface
 import com.todou.gltransition.widget.MovieMakerTextureView
 
-class GLThreadRender(var mContext: Context, textureView: TextureView,var mIRendererWorker: IRendererWorker) : Thread("GLThreadRender"), IPlayerLife, TextureRenderer.Renderer {
+class GLThreadRender(var context: Context, textureView: TextureView, var iRendererWorker: IRendererWorker) : Thread("GLThreadRender"), IPlayerLife, TextureRenderer.Renderer {
 
     protected var mMovieMakerTextureView: MovieMakerTextureView? = null
     var isStop: Boolean = false
@@ -18,7 +19,7 @@ class GLThreadRender(var mContext: Context, textureView: TextureView,var mIRende
     protected var mIsFinish: Boolean = false
     protected var mIsBackGround: Boolean = false
     private var mIsRecording = false
-    private val mLock = Any()
+    private val mLock = Object()
     private var mTextureViewReadyOk = false
     private var mRequestRenderCount = 0
     private var isDrawIng = false
@@ -58,10 +59,8 @@ class GLThreadRender(var mContext: Context, textureView: TextureView,var mIRende
                     if (mMovieMakerTextureView != null && !isStop)
                         mMovieMakerTextureView!!.requestRender()
                     mLock.wait()
-                    if (!mIsRecording)
-                        Thread.sleep(Math.max(0, 1000 / RECORDFPS - (System.currentTimeMillis() - startTime)))//睡眠
                     if (!mIsBackGround)
-                        usedTime = usedTime + (if (mIsRecording) 1000 / RECORDFPS else System.currentTimeMillis() - startTime)
+                        usedTime = usedTime + System.currentTimeMillis() - startTime
                     else
                         mIsBackGround = false
                     usedTime = if (usedTime >= mSumTime) mSumTime else usedTime
@@ -80,24 +79,24 @@ class GLThreadRender(var mContext: Context, textureView: TextureView,var mIRende
         }
     }
 
-    fun onPause() {
+    override fun onPause() {
         mMovieMakerTextureView!!.onPause()
     }
 
-    fun onResume() {
+    override fun onResume() {
         mMovieMakerTextureView!!.onResume()
     }
 
-    fun onRestart() {
+    override fun onRestart() {
         startUp()
     }
 
-    fun onStop() {
+    override fun onStop() {
         setBackGround(true)
         stopUp()
     }
 
-    fun onDestroy() {
+    override fun onDestroy() {
         mIsFinish = true
         isStop = true
         mMovieMakerTextureView = null
@@ -135,15 +134,15 @@ class GLThreadRender(var mContext: Context, textureView: TextureView,var mIRende
     }
 
 
-    fun onSurfaceCreated(windowSurface: WindowSurface, eglCore: EglCore) {
-        mIRendererWorker.onSurfaceCreated(windowSurface, eglCore)
-        mIRendererWorker.onSurfaceChanged(windowSurface, windowSurface.getWidth(), windowSurface.getHeight())
+    override fun onSurfaceCreated(windowSurface: WindowSurface, eglCore: EglCore) {
+        iRendererWorker.onSurfaceCreated(windowSurface, eglCore)
+        iRendererWorker.onSurfaceChanged(windowSurface, windowSurface.width, windowSurface.height)
         mTextureViewReadyOk = true
         checkToStart()
     }
 
-    fun onSurfaceChanged(windowSurface: WindowSurface, width: Int, height: Int) {
-        mIRendererWorker.onSurfaceChanged(windowSurface, width, height)
+    override fun onSurfaceChanged(windowSurface: WindowSurface, width: Int, height: Int) {
+        iRendererWorker.onSurfaceChanged(windowSurface, width, height)
     }
 
     private fun checkToStart() {
@@ -154,7 +153,7 @@ class GLThreadRender(var mContext: Context, textureView: TextureView,var mIRende
         }
     }
 
-    fun onDrawFrame(windowSurface: WindowSurface) {
+    override fun onDrawFrame(windowSurface: WindowSurface) {
         isDrawIng = true
         if (!mIsManual) {
             synchronized(mLock) {
@@ -163,19 +162,19 @@ class GLThreadRender(var mContext: Context, textureView: TextureView,var mIRende
                     return
                 }
             }
-            mIRendererWorker.drawFrame(mContext, windowSurface, usedTime)
+            iRendererWorker.drawFrame(context, windowSurface, usedTime)
             synchronized(mLock) {
                 mLock.notify()
             }
         } else {
-            mIRendererWorker.drawFrame(mContext, windowSurface, usedTime)
+            iRendererWorker.drawFrame(context, windowSurface, usedTime)
             checkCountToRequest()
         }
         isDrawIng = false
     }
 
     override fun onSurfaceDestroy() {
-        mIRendererWorker.onSurfaceDestroy()
+        iRendererWorker.onSurfaceDestroy()
     }
 
     companion object {

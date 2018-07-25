@@ -6,7 +6,7 @@ import android.view.TextureView
 import com.todou.gltransition.widget.MovieMakerTextureView
 import java.util.ArrayList
 
-class VideoClipProcessor(textureView: TextureView) {
+class ClipProcessor(textureView: TextureView) {
 
     private val mImageClipDrawers: ArrayList<ImageClipDrawer>
     private val mTransitionDrawers: ArrayList<TransitionDrawer>
@@ -28,5 +28,17 @@ class VideoClipProcessor(textureView: TextureView) {
         for (render in mTransitionDrawers) {
             render.drawFrame(usedTime, pMatrix)
         }
+    }
+
+    fun onDestroy(){
+
+    }
+
+    fun updateTransitionClipRenders(){
+
+    }
+
+    fun updateSubtitleClipRenders(){
+
     }
 }

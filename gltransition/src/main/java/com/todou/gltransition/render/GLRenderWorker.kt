@@ -4,15 +4,12 @@ import android.content.Context
 import android.graphics.Rect
 import android.opengl.GLES20
 import android.opengl.Matrix
-import android.util.Log
 import android.view.TextureView
 
 import com.todou.gltransition.BuildConfig
 import com.todou.gltransition.gles.EglCore
 import com.todou.gltransition.gles.GlUtil
 import com.todou.gltransition.gles.WindowSurface
-
-import java.io.IOException
 
 import android.opengl.GLES20.GL_COLOR_BUFFER_BIT
 import android.opengl.GLES20.glClear
@@ -22,7 +19,7 @@ import android.opengl.Matrix.setIdentityM
 
 class GLRenderWorker(context: Context, private val mTextureView: TextureView) : IRendererWorker {
 
-    private var mImageClipProcessor: VideoClipProcessor? = null
+    private lateinit var mClipProcessor: ClipProcessor
     private val projectionMatrix = FloatArray(16)
     private var mIsRecording: Boolean = false
 
@@ -45,9 +42,8 @@ class GLRenderWorker(context: Context, private val mTextureView: TextureView) : 
     }
 
     override fun onSurfaceCreated(windowSurface: WindowSurface, eglCore: EglCore) {
-
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f)
-        mImageClipProcessor = VideoClipProcessor(mTextureView)
+        mClipProcessor = ClipProcessor(mTextureView)
         mEglCore = eglCore
         GLES20.glDisable(GLES20.GL_DEPTH_TEST)
         GLES20.glDisable(GLES20.GL_CULL_FACE)
@@ -61,36 +57,20 @@ class GLRenderWorker(context: Context, private val mTextureView: TextureView) : 
     override fun drawFrame(context: Context, windowSurface: WindowSurface, usedTime: Long) {
         glClear(GL_COLOR_BUFFER_BIT)
         setIdentityM(projectionMatrix, 0)
-        mImageClipProcessor!!.drawFrame(usedTime, projectionMatrix)
+        mClipProcessor.drawFrame(usedTime, projectionMatrix)
         windowSurface.swapBuffers()
     }
 
     override fun onSurfaceDestroy() {
-        if (mImageClipProcessor != null) mImageClipProcessor!!.onDestroy()
+        mClipProcessor.onDestroy()
     }
 
     fun refreshTransitionRender() {
-        if (mImageClipProcessor != null) mImageClipProcessor!!.updateTransitionClipRenders()
+        mClipProcessor.updateTransitionClipRenders()
     }
 
     fun refreshSubtitleRender() {
-        if (mImageClipProcessor != null) mImageClipProcessor!!.updateSubtitleClipRenders()
-    }
-
-    @Synchronized
-    fun startRecording(filename: String) {
-        startEncoder(filename)
-        mIsRecording = true
-    }
-
-    @Synchronized
-    fun endRecording(): String? {
-        var path: String? = null
-        if (mIsRecording) {
-            mIsRecording = false
-            path = stopRecording()
-        }
-        return path
+        mClipProcessor.updateSubtitleClipRenders()
     }
 
     private fun prepareFramebuffer(width: Int, height: Int) {
@@ -149,33 +129,7 @@ class GLRenderWorker(context: Context, private val mTextureView: TextureView) : 
         GlUtil.checkGlError("prepareFramebuffer done")
     }
 
-    private fun startEncoder(fileName: String) {
-        Log.d(TAG, "starting to record")
-        val BIT_RATE = 1000000  //码率(kbps)=文件大小(字节)X8 /时间(秒)/1000 4000000 1000000
-        val VIDEO_WIDTH = 1280
-        val VIDEO_HEIGHT = 720
-        val windowWidth = mTextureView.width
-        val windowHeight = mTextureView.height
-        val windowAspect = windowHeight.toFloat() / windowWidth.toFloat()
-        val outWidth: Int
-        val outHeight: Int
-        if (VIDEO_HEIGHT > VIDEO_WIDTH * windowAspect) {
-            // limited by narrow width; reduce height
-            outWidth = VIDEO_WIDTH
-            outHeight = (VIDEO_WIDTH * windowAspect).toInt()
-        } else {
-            // limited by short height; restrict width
-            outHeight = VIDEO_HEIGHT
-            outWidth = (VIDEO_HEIGHT / windowAspect).toInt()
-        }
-        val offX = (VIDEO_WIDTH - outWidth) / 2
-        val offY = (VIDEO_HEIGHT - outHeight) / 2
-        mVideoRect.set(offX, offY, offX + outWidth, offY + outHeight)
-        startRecording(fileName, VIDEO_WIDTH, VIDEO_HEIGHT, BIT_RATE)
-    }
-
     companion object {
-
         val DEBUG = BuildConfig.DEBUG && true
         private val TAG = "GLRenderWorker"
     }
